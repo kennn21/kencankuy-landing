@@ -134,3 +134,11 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Add this to the bottom of the file */
+.pac-container {
+  z-index: 1050 !important; /* Ensures it's on top of other elements */
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
