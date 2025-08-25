@@ -1,10 +1,10 @@
-import CtaSection from "../components/CtaSection";
-import FeaturesSection from "../components/FeaturesSection";
-import Footer from "../components/Footer";
-import HeroSection from "../components/HeroSection";
-import HowItWorksSection from "../components/HowItWorksSection";
-import ProblemSolutionSection from "../components/ProblemSolutionSection";
-import TestimonialsSection from "../components/TestimonialsSection";
+import CtaSection from "../components/pages/home/CtaSection";
+import FeaturesSection from "../components/pages/home/FeaturesSection";
+import Footer from "../components/pages/home/Footer";
+import HeroSection from "../components/pages/home/HeroSection";
+import HowItWorksSection from "../components/pages/home/HowItWorksSection";
+import ProblemSolutionSection from "../components/pages/home/ProblemSolutionSection";
+import TestimonialsSection from "../components/pages/home/TestimonialsSection";
 
 export default function Home() {
   return (

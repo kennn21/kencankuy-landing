@@ -1,5 +1,5 @@
 // app/components/HeroSection.tsx
-import { Apple, Play } from "lucide-react";
+import CallToActions from "../../global/CallToActions";
 import Heart from "./Heart"; // Import the Heart component
 
 const HeroSection = () => {
@@ -22,20 +22,7 @@ const HeroSection = () => {
               Your personal date planner for Jakarta. Curated plans, just a tap
               away.
             </p>
-            <div className="flex justify-center lg:justify-start space-x-4">
-              <button className="flex items-center bg-black text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors">
-                <Apple className="w-6 h-6 mr-2" />
-                <span>
-                  Download on the <br /> App Store
-                </span>
-              </button>
-              <button className="flex items-center bg-black text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors">
-                <Play className="w-6 h-6 mr-2" />
-                <span>
-                  Get it on <br /> Google Play
-                </span>
-              </button>
-            </div>
+            <CallToActions type="prototype" />
           </div>
 
           {/* Phone Mockup Visual */}

@@ -1,16 +1,24 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
-import Script from "next/script"; // Import the Script component
+import { Playfair_Display, Lato } from "next/font/google"; // 1. Import new fonts
+import Script from "next/script";
 import "./globals.css";
+import { Toaster } from "sonner";
 
-const poppins = Poppins({
+// 2. Configure the fonts
+const playfair = Playfair_Display({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "700"],
+  variable: "--font-playfair", // Assign to a CSS variable
+});
+
+const lato = Lato({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-lato", // Assign to a CSS variable
 });
 
 export const metadata: Metadata = {
   title: "KencanKuy | Your Perfect Date Planner",
-  description: "Say goodbye to boring dates...",
 };
 
 export default function RootLayout({
@@ -19,13 +27,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    // 3. Apply the font variables to the HTML tag
+    <html lang="en" className={`${playfair.variable} ${lato.variable}`}>
       <body>
-        {children}
-
-        {/* Move the script here, just before the closing </body> tag */}
+        {children} <Toaster richColors />
         <Script
           src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
+          async
           strategy="beforeInteractive"
         />
       </body>
