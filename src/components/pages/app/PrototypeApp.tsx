@@ -1,14 +1,18 @@
 "use client";
 
+import CustomHeart from "@/components/pages/home/Heart";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
-import Image from "next/image";
 
-import { Background } from "@/components/global/Background"; // 1. Import the new background
+import { Background } from "@/components/global/Background";
+import Icon from "@/components/global/Icon";
 import { LocationAutocomplete } from "@/components/global/LocationAutocomplete";
+import { LocationLoader } from "@/components/global/LocationLoader";
+import { TimelineItem } from "@/components/global/TimelineItems";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,6 +22,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -27,35 +39,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PLACE_CATEGORIES } from "@/constants/form.const";
-import {
-  ExternalLink,
-  GlassWater,
-  Heart,
-  Loader2,
-  MapPin,
-  PartyPopper,
-  Shirt,
-  Sparkles,
-  UtensilsCrossed,
-} from "lucide-react";
-import Icon from "@/components/global/Icon";
-import { toast } from "sonner";
-
-// Define types
-type Place = {
-  id: number;
-  name: string;
-  address: string;
-  googlePlaceId: string;
-  latitude: number;
-  longitude: number;
-  photoReference: string | null;
-};
+import { PROTOTYPE_APP_PATH } from "@/constants/path.const";
+import { DatePlan } from "@/types/date-plans";
+import { Loader2, Lock, Share2 } from "lucide-react";
 
 const formSchema = z.object({
-  location: z.object({ lat: z.number(), lng: z.number() }),
-  category: z.string(),
-  budget: z.coerce.number().optional(),
+  location: z.object(
+    { lat: z.number(), lng: z.number() },
+    { error: "Please select a location." }
+  ),
+  category: z.string({ error: "Please select a category." }),
+  budget: z.coerce
+    .number()
+    .optional()
+    .transform((val) => (val === 0 || isNaN(Number(val)) ? undefined : val)),
 });
 
 // Animation variants
@@ -70,21 +67,6 @@ const itemVariants = {
   visible: { opacity: 1, scale: 1 },
 };
 
-const getDressCode = (category: string): string => {
-  switch (category) {
-    case "romantic":
-    case "artsy":
-      return "Smart Casual";
-    case "foodie":
-      return "Casual Chic";
-    case "adventurous":
-    case "sporty":
-      return "Comfortable Activewear";
-    default:
-      return "Casual";
-  }
-};
-
 export default function PrototypeAppPage() {
   const [stage, setStage] = useState<
     | "idle"
@@ -94,15 +76,14 @@ export default function PrototypeAppPage() {
     | "fetchingPlan"
     | "results"
   >("idle");
-  const [places, setPlaces] = useState<Place[]>([]);
+  const [remaining, setRemaining] = useState<number | null>(5); // Remaining requests
+  const [datePlan, setDatePlan] = useState<DatePlan | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm({
     resolver: zodResolver(formSchema),
-    defaultValues: { category: "romantic" },
+    defaultValues: { category: "romantic", budget: undefined },
   });
-
-  const selectedCategory = form.watch("category");
 
   const handleStart = () => {
     setStage("fetchingLocation");
@@ -116,18 +97,15 @@ export default function PrototypeAppPage() {
         setStage("options");
       },
       () => {
-        // Use a toast for the error message
         toast.error("Automatic location failed.", {
           description: "Please pick a location manually to continue.",
         });
-        // Transition to the map picker after showing the toast
         setStage("mapPicker");
       },
-      { timeout: 5000 } // Add a timeout to prevent it from hanging
+      { timeout: 5000 }
     );
   };
 
-  // Handler for when a location is selected from the map picker
   const handleManualLocationSelect = (location: {
     lat: number;
     lng: number;
@@ -152,24 +130,88 @@ export default function PrototypeAppPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!response.ok) throw new Error("Failed to find a date plan.");
+
+      // 2. Read the headers from the response
+      const remainingRequests = response.headers.get("X-RateLimit-Remaining");
+
+      response.headers
+        .keys()
+        .map((key) => `${key}: ${response.headers.get(key)}`)
+        .forEach((header) => console.log(header));
+
+      console.log("Remaining requests:", remainingRequests);
+      if (remainingRequests) {
+        setRemaining(Number(remainingRequests));
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || "Failed to find a date plan.");
+      }
       const data = await response.json();
-      setPlaces(data.steps.map((step: any) => step.place));
+      setDatePlan(data);
       setStage("results");
-    } catch (err: any) {
-      setApiError(err.message);
+    } catch (err) {
+      setApiError((err as { message: string }).message);
       setStage("options");
+
+      if (remaining === 0) {
+        toast.error(
+          "You have reached your request limit. Please sign in for more access."
+        );
+        return;
+      }
+      toast.error("Sorry! Failed to create a date plan.", {
+        description:
+          (err as { message: string }).message ||
+          "Please try again with different options.",
+      });
     }
   };
 
   const reset = () => {
-    setPlaces([]);
+    setDatePlan(null);
     setApiError(null);
     setStage("idle");
   };
 
+  const handleShare = () => {
+    if (!datePlan) return;
+    const MAIN_DOMAIN =
+      process.env.NEXT_PUBLIC_MAIN_DOMAIN || window.location.origin;
+    const shareUrl = `${MAIN_DOMAIN}${PROTOTYPE_APP_PATH}plan/${datePlan.id}`;
+    navigator.clipboard.writeText(shareUrl);
+    toast.success("Link copied to clipboard!");
+  };
+
+  const placeCategoriesOptions = useMemo(() => {
+    return PLACE_CATEGORIES.map((category) => (
+      <SelectItem key={category.value} value={category.value}>
+        <div className="flex items-center space-x-2">
+          <Icon name={category.icon} className="w-4 h-4" />
+          <span>{category.label}</span>
+        </div>
+      </SelectItem>
+    ));
+  }, []);
+
+  useEffect(() => {
+    const getRateLimitStatus = async () => {
+      try {
+        const response = await fetch("http://localhost:8081/rate-limit/status");
+        if (!response.ok) return; // Fail silently
+        const data = await response.json();
+        setRemaining(data.remaining);
+      } catch (error) {
+        console.error("Could not fetch rate limit status:", error);
+      }
+    };
+
+    getRateLimitStatus();
+  }, []);
+
   return (
-    <main className="min-h-screen w-full bg-pink-50 flex items-center justify-center p-4 sm:p-6 md:p-8 relative">
+    <main className="min-h-screen w-full bg-pink-50 flex items-center justify-center p-4 sm:p-6 md:p-8 overflow-hidden">
       <Background />
       <AnimatePresence mode="wait">
         {stage === "idle" && (
@@ -177,61 +219,82 @@ export default function PrototypeAppPage() {
             key="idle"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
+            exit={{ opacity: 0, scale: 0 }}
             className="text-center"
           >
-            {/* Animate the scale for a heartbeat effect */}
-            <motion.div
-              animate={{ scale: [1, 1.05, 1] }} // Slightly scale up and back down
-              transition={{
-                duration: 1, // Adjust the speed of the heartbeat
-                ease: "easeInOut",
-                repeat: Infinity,
-              }}
-            >
-              <Button
-                size="lg"
-                className="h-16 px-6 sm:px-8 text-lg sm:text-xl bg-brand-pink hover:bg-pink-400 rounded-full shadow-lg"
-                onClick={handleStart}
+            <div className="text-center flex flex-col items-center justify-center">
+              <motion.h1
+                variants={itemVariants}
+                className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-800 mb-4 font-playfair"
               >
-                Kencan kuy
-                <Heart fill="white" />
-              </Button>
-            </motion.div>
-            {apiError && <p className="text-red-500 mt-4">{apiError}</p>}
+                KencanKuy
+              </motion.h1>
+              <motion.p
+                variants={itemVariants}
+                className="text-lg sm:text-xl text-pink-600 mb-8 max-w-md"
+              >
+                Spontaneous, AI-powered date plans.
+                <br />
+                Ready when you are.
+              </motion.p>
+              <motion.div
+                variants={itemVariants}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <button
+                  onClick={handleStart}
+                  className="relative flex items-center justify-center h-40 w-40 sm:h-48 sm:w-48 rounded-full focus:outline-none "
+                >
+                  <motion.div
+                    className="absolute flex items-center justify-center w-full h-full"
+                    animate={{ scale: [1, 1.05, 1] }}
+                    transition={{
+                      duration: 1,
+                      ease: "easeInOut",
+                      repeat: Infinity,
+                    }}
+                  >
+                    <CustomHeart className="absolute w-full h-full text-brand-pink" />
+                    <span className="relative z-1 text-white text-2xl -translate-y-1 font-bold font-playfair">
+                      Start
+                    </span>
+                  </motion.div>
+                </button>
+              </motion.div>
+            </div>
           </motion.div>
         )}
 
-        {/* STAGE 2: FETCHING LOCATION */}
         {stage === "fetchingLocation" && (
           <motion.div
             key="fetchingLocation"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex flex-col items-center space-y-2 text-gray-600"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
           >
-            <Loader2 className="h-8 w-8 animate-spin text-pink-500" />
-            <p>Finding your location...</p>
+            <LocationLoader />
           </motion.div>
         )}
 
-        {/* STAGE 3: MAP PICKER (FALLBACK) */}
         {stage === "mapPicker" && (
           <motion.div
             key="mapPicker"
-            // ... (variants and props)
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
             className="w-full max-w-sm flex flex-col items-center"
           >
-            {/* The toast now handles the error message, so we don't need to show it here */}
-            <LocationAutocomplete
-              onLocationSelect={handleManualLocationSelect}
-              currentLocation={null}
-            />
+            <motion.div variants={itemVariants} className="w-full">
+              <LocationAutocomplete
+                onLocationSelect={handleManualLocationSelect}
+                currentLocation={null}
+              />
+            </motion.div>
           </motion.div>
         )}
 
-        {/* STAGE 4: OPTIONS */}
         {(stage === "options" || stage === "fetchingPlan") && (
           <motion.div
             key="options"
@@ -249,74 +312,123 @@ export default function PrototypeAppPage() {
                   </CardTitle>
                 </motion.div>
                 <motion.div variants={itemVariants}>
-                  <CardDescription className="text-pink-400 font-semibold">
+                  <CardDescription className="text-pink-500 font-semibold">
                     What&apos;s the vibe for today?
                   </CardDescription>
                 </motion.div>
               </CardHeader>
-              <form onSubmit={form.handleSubmit(onSubmit)}>
-                <CardContent className="space-y-4">
-                  <motion.div variants={itemVariants}>
-                    <Controller
-                      name="category"
-                      control={form.control}
-                      render={({ field }) => (
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {PLACE_CATEGORIES.map(({ icon, label, value }) => (
-                              <SelectItem
-                                key={`category-${value}`}
-                                value={value}
-                              >
-                                <Icon name={icon} />
-                                {label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </motion.div>
-                  <motion.div variants={itemVariants}>
-                    <Controller
-                      name="budget"
-                      control={form.control}
-                      render={({ field }) => (
-                        <Input
-                          type="number"
-                          placeholder="Max Budget (optional)"
-                          {...field}
-                        />
-                      )}
-                    />
-                  </motion.div>
-                </CardContent>
-                <CardFooter className="pt-4">
-                  <Button
-                    type="submit"
-                    disabled={stage === "fetchingPlan"}
-                    className="w-full bg-brand-pink hover:bg-pink-400 text-white font-bold"
-                  >
-                    {stage === "fetchingPlan" ? (
-                      <Loader2 className="animate-spin" />
-                    ) : (
-                      "Create My Itinerary"
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)}>
+                  <CardContent className="space-y-4">
+                    <motion.div variants={itemVariants}>
+                      <FormField
+                        control={form.control}
+                        name="category"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Theme / Category</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select a date theme" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {placeCategoriesOptions}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </motion.div>
+                    <motion.div variants={itemVariants}>
+                      <FormField
+                        control={form.control}
+                        name="budget"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Max Budget</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="e.g., 250000"
+                                {...field}
+                                value={(field.value as string) ?? ""}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </motion.div>
+                    {remaining !== null && remaining > 0 && (
+                      <motion.p
+                        variants={itemVariants}
+                        className="text-xs text-center text-gray-500"
+                      >
+                        You have{" "}
+                        <span className="font-bold text-pink-500">
+                          {remaining}
+                        </span>{" "}
+                        plans left. Sign-in for more date plans.
+                      </motion.p>
                     )}
-                  </Button>
-                </CardFooter>
-              </form>
+
+                    {remaining === 0 && (
+                      <motion.div
+                        variants={itemVariants}
+                        className="text-center p-2 bg-yellow-100/50 border border-yellow-200 rounded-md"
+                      >
+                        <p className="text-xs text-yellow-700">
+                          You&apos;ve used all your free plans. Please sign in
+                          for more access.
+                        </p>
+                      </motion.div>
+                    )}
+                  </CardContent>
+                  <CardFooter>
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full pt-4"
+                    >
+                      {remaining === 0 ? (
+                        <Button type="button" className="w-full bg-gray-400">
+                          <Lock className="mr-2 h-4 w-4" />
+                          Sign in for More Plans
+                        </Button>
+                      ) : (
+                        <motion.div
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="w-full"
+                        >
+                          <Button
+                            type="submit"
+                            disabled={stage === "fetchingPlan"}
+                            className="w-full bg-brand-pink hover:bg-pink-400 text-white font-bold"
+                          >
+                            {stage === "fetchingPlan" ? (
+                              <Loader2 className="animate-spin" />
+                            ) : (
+                              "Create My Itinerary"
+                            )}
+                          </Button>
+                        </motion.div>
+                      )}
+                    </motion.div>
+                  </CardFooter>
+                </form>
+              </Form>
             </Card>
           </motion.div>
         )}
 
-        {/* STAGE 5: RESULTS (UPDATED) */}
-        {stage === "results" && (
+        {stage === "results" && datePlan && (
           <motion.div
             key="results"
             variants={containerVariants}
@@ -332,117 +444,30 @@ export default function PrototypeAppPage() {
               Your Date Itinerary
             </motion.h2>
 
-            {/* 2. Add the new Plan Details Card */}
-            <motion.div variants={itemVariants}>
-              <Card className="bg-white/70 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="text-xl">Plan Details</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm">
-                  <div className="flex items-center">
-                    <PartyPopper className="h-4 w-4 mr-3 text-pink-500" />
-                    <span className="font-semibold mr-2">Theme:</span>
-                    <span className="capitalize">{selectedCategory}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Shirt className="h-4 w-4 mr-3 text-pink-500" />
-                    <span className="font-semibold mr-2">Dress Code:</span>
-                    <span>{getDressCode(selectedCategory)}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* The timeline container */}
             <div className="timeline-container py-4">
-              {places.map((place, index) => {
-                // Construct the photo URL
-                const photoUrl = place.photoReference
-                  ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photoreference=${place.photoReference}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
-                  : null;
-
-                // Construct the "Open in Maps" URL
-                const openInMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                  place.name
-                )}&query_place_id=${place.googlePlaceId}`;
-                return (
-                  <motion.div
-                    key={place.id}
-                    variants={itemVariants}
-                    className="timeline-item"
-                  >
-                    <div className="timeline-icon">
-                      {index === 0 && <Sparkles size={20} />}
-                      {index === 1 && <UtensilsCrossed size={20} />}
-                      {index === 2 && <GlassWater size={20} />}
-                    </div>
-
-                    <div className="timeline-card">
-                      <Card className="w-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
-                        {/* Re-added the image preview */}
-                        <div className="relative w-full h-40 bg-gray-200">
-                          {photoUrl ? (
-                            <img
-                              src={photoUrl}
-                              alt={`Photo of ${place.name}`}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <MapPin className="h-10 w-10 text-gray-400" />
-                            </div>
-                          )}
-                        </div>
-                        <CardHeader
-                          className={`${
-                            index % 2 !== 0 ? "text-right" : "text-left"
-                          }`}
-                        >
-                          <CardTitle className="text-lg sm:text-xl">
-                            {place.name}
-                          </CardTitle>
-                          {/* <CardDescription
-                            className={`flex items-center text-xs sm:text-sm text-gray-500 ${
-                              index % 2 !== 0 ? "justify-end" : "justify-start"
-                            }`}
-                          >
-                            <MapPin className="h-3 w-3 mr-1.5 flex-shrink-0" />
-                            {place.address}
-                          </CardDescription> */}
-                        </CardHeader>
-                        {/* Re-added the "Open in Maps" link */}
-                        <CardFooter
-                          className={`pb-4 ${
-                            index % 2 !== 0 ? "justify-end" : "justify-start"
-                          }`}
-                        >
-                          <a
-                            href={openInMapsUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center text-xs text-pink-600 hover:text-pink-800 font-semibold"
-                          >
-                            Open in Google Maps
-                            <ExternalLink className="h-3 w-3 ml-1" />
-                          </a>
-                        </CardFooter>
-                      </Card>
-                    </div>
-                  </motion.div>
-                );
-              })}
+              {datePlan.steps.map((step, index) => (
+                <TimelineItem
+                  key={step.place.id}
+                  place={step.place}
+                  index={index}
+                />
+              ))}
             </div>
 
             <motion.div
               variants={itemVariants}
-              className="flex flex-col items-center gap-2"
+              className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4"
             >
-              <motion.h1>Don&apos;t like it?</motion.h1>
+              <Button
+                onClick={handleShare}
+                className="w-1/2 bg-pink-500 hover:bg-pink-600 text-white"
+              >
+                <Share2 className="mr-2 h-4 w-4" /> Share This Plan
+              </Button>
               <Button
                 onClick={reset}
                 variant="outline"
-                className="w-full bg-white/50 backdrop-blur-sm"
+                className="w-1/2 bg-white/50 backdrop-blur-sm"
               >
                 Start Over
               </Button>
