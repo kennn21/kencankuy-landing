@@ -6,9 +6,12 @@ import Link from "next/link";
 
 async function getPlanData(id: string) {
   try {
-    const response = await fetch(`http://localhost:8081/date-plan/${id}`, {
-      cache: "no-store",
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/date-plan/${id}`,
+      {
+        cache: "no-store",
+      }
+    );
     console.log("Response status:", response.status);
     if (!response.ok) return null;
     return response.json();

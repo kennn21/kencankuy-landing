@@ -125,11 +125,14 @@ export default function PrototypeAppPage() {
         lng: values.location.lng,
         ...(values.budget && { budget: values.budget }),
       };
-      const response = await fetch(`http://localhost:8081/date-plan/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/date-plan/generate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
 
       // 2. Read the headers from the response
       const remainingRequests = response.headers.get("X-RateLimit-Remaining");
@@ -198,7 +201,9 @@ export default function PrototypeAppPage() {
   useEffect(() => {
     const getRateLimitStatus = async () => {
       try {
-        const response = await fetch("http://localhost:8081/rate-limit/status");
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/rate-limit/status`
+        );
         if (!response.ok) return; // Fail silently
         const data = await response.json();
         setRemaining(data.remaining);
