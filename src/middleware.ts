@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const protectedRoutes = ["/app", "/settings"];
-const publicRoutes = ["/", "/auth"]; // Landing page and auth page are public
+const protectedRoutes = ["/settings"];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { toast } from "sonner";
-import { useEffect } from "react"; // Make sure useEffect is imported
+import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -37,7 +37,6 @@ const profileFormSchema = z.object({
     .or(z.literal("")),
 });
 
-// Helper function to handle the API call
 async function updateUserProfile(data: z.infer<typeof profileFormSchema>) {
   try {
     const response = await kencanApi.users.updateProfile.call({ data });
@@ -51,20 +50,28 @@ async function updateUserProfile(data: z.infer<typeof profileFormSchema>) {
 }
 
 export default function ProfilePage() {
-  const { user, isReady } = useAuth();
+  const { user, isReady, profile } = useAuth();
 
+  // 1. Provide default values to useForm
   const form = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
+    defaultValues: {
+      name: "",
+      partnerName: "",
+      partnerEmail: "",
+    },
   });
 
-  // This will be replaced by a fetch call to your own DB
+  // 2. Use form.reset() to update the form values once the profile is loaded
   useEffect(() => {
-    if (user) {
+    if (profile) {
       form.reset({
-        name: user.displayName || "",
+        name: profile.name || "",
+        partnerName: profile.partnerName || "",
+        partnerEmail: profile.partnerEmail || "",
       });
     }
-  }, [user, form]);
+  }, [profile, form]);
 
   const onSubmit = async (values: z.infer<typeof profileFormSchema>) => {
     if (!user) {
