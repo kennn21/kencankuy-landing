@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 
 type Heart = {
@@ -63,7 +63,7 @@ const RainingHeart = ({ heart }: { heart: Heart }) => {
 // Generate random heart properties with depth
 const generateRainingHearts = (count: number) => {
   return Array.from({ length: count }, (_, i) => {
-    const size = Math.random() * 12 + 6; // Range from 6px to 18px
+    const size = Math.random() * 24 + 6; // Range from 6px to 18px
     const isInBackground = size < 10; // Anything smaller than 10px is "in the back"
 
     return {
@@ -89,12 +89,12 @@ const generateRainingHearts = (count: number) => {
 };
 
 export function Background() {
-  const [hearts, setHearts] = useState<Heart[]>([]);
   const [isClient, setIsClient] = useState(false);
+
+  const hearts: Heart[] = useMemo(() => generateRainingHearts(80), []);
 
   useEffect(() => {
     setIsClient(true);
-    setHearts(generateRainingHearts(80)); // Generate 80 hearts for density
   }, []);
 
   if (!isClient) {
