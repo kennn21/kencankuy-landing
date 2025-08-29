@@ -12,7 +12,6 @@ import { Background } from "@/components/global/Background";
 import Icon from "@/components/global/Icon";
 import { LocationAutocomplete } from "@/components/global/LocationAutocomplete";
 import { LocationLoader } from "@/components/global/LocationLoader";
-import { TimelineItem } from "@/components/global/TimelineItems";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -41,7 +40,9 @@ import {
 import { PLACE_CATEGORIES } from "@/constants/form.const";
 import { PROTOTYPE_APP_PATH } from "@/constants/path.const";
 import { DatePlan } from "@/types/date-plans";
-import { Loader2, Lock, Share2 } from "lucide-react";
+import { Loader2, Lock } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { kencanApi } from "@/lib/api-list";
 
 const formSchema = z.object({
   location: z.object(
@@ -68,6 +69,7 @@ const itemVariants = {
 };
 
 export default function PrototypeAppPage() {
+  const router = useRouter();
   const [stage, setStage] = useState<
     | "idle"
     | "fetchingLocation"
@@ -125,35 +127,18 @@ export default function PrototypeAppPage() {
         lng: values.location.lng,
         ...(values.budget && { budget: values.budget }),
       };
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/date-plan/generate`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        }
-      );
-
+      const response = await kencanApi.datePlan.generate.call<DatePlan>({
+        data: body,
+      });
+      console.log(response);
       // 2. Read the headers from the response
-      const remainingRequests = response.headers.get("X-RateLimit-Remaining");
+      const remainingRequests = response.headers["x-ratelimit-remaining"];
 
-      response.headers
-        .keys()
-        .map((key) => `${key}: ${response.headers.get(key)}`)
-        .forEach((header) => console.log(header));
-
-      console.log("Remaining requests:", remainingRequests);
       if (remainingRequests) {
         setRemaining(Number(remainingRequests));
       }
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.message || "Failed to find a date plan.");
-      }
-      const data = await response.json();
-      setDatePlan(data);
-      setStage("results");
+      router.push(`/app/plan/${response.data.id}`);
     } catch (err) {
       setApiError((err as { message: string }).message);
       setStage("options");
@@ -172,21 +157,6 @@ export default function PrototypeAppPage() {
     }
   };
 
-  const reset = () => {
-    setDatePlan(null);
-    setApiError(null);
-    setStage("idle");
-  };
-
-  const handleShare = () => {
-    if (!datePlan) return;
-    const MAIN_DOMAIN =
-      process.env.NEXT_PUBLIC_MAIN_DOMAIN || window.location.origin;
-    const shareUrl = `${MAIN_DOMAIN}${PROTOTYPE_APP_PATH}plan/${datePlan.id}`;
-    navigator.clipboard.writeText(shareUrl);
-    toast.success("Link copied to clipboard!");
-  };
-
   const placeCategoriesOptions = useMemo(() => {
     return PLACE_CATEGORIES.map((category) => (
       <SelectItem key={category.value} value={category.value}>
@@ -201,11 +171,8 @@ export default function PrototypeAppPage() {
   useEffect(() => {
     const getRateLimitStatus = async () => {
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/rate-limit/status`
-        );
-        if (!response.ok) return; // Fail silently
-        const data = await response.json();
+        const { data } = await kencanApi.rateLimit.getStatus.call();
+
         setRemaining(data.remaining);
       } catch (error) {
         console.error("Could not fetch rate limit status:", error);
@@ -430,53 +397,6 @@ export default function PrototypeAppPage() {
                 </form>
               </Form>
             </Card>
-          </motion.div>
-        )}
-
-        {stage === "results" && datePlan && (
-          <motion.div
-            key="results"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className="w-full max-w-lg space-y-4"
-          >
-            <motion.h2
-              variants={itemVariants}
-              className="text-3xl sm:text-4xl font-bold text-center text-gray-800 font-playfair"
-            >
-              Your Date Itinerary
-            </motion.h2>
-
-            <div className="timeline-container py-4">
-              {datePlan.steps.map((step, index) => (
-                <TimelineItem
-                  key={step.place.id}
-                  place={step.place}
-                  index={index}
-                />
-              ))}
-            </div>
-
-            <motion.div
-              variants={itemVariants}
-              className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4"
-            >
-              <Button
-                onClick={handleShare}
-                className="w-1/2 bg-pink-500 hover:bg-pink-600 text-white"
-              >
-                <Share2 className="mr-2 h-4 w-4" /> Share This Plan
-              </Button>
-              <Button
-                onClick={reset}
-                variant="outline"
-                className="w-1/2 bg-white/50 backdrop-blur-sm"
-              >
-                Start Over
-              </Button>
-            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

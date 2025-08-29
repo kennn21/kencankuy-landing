@@ -10,18 +10,19 @@ import {
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 // Define the shape of the context
 interface AuthContextType {
   user: User | null;
-  loading: boolean;
+  isReady: boolean; // Renamed from 'loading' for clarity
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  loading: true,
+  isReady: false,
   signInWithGoogle: async () => {},
   logout: async () => {},
 });
@@ -29,26 +30,25 @@ const AuthContext = createContext<AuthContextType>({
 // Create the provider component
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isReady, setIsReady] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-      setLoading(false);
+      setIsReady(true);
+
+      // If user logs in, create the session cookie
       if (currentUser) {
-        // Sync user with our backend after sign-in
         const token = await currentUser.getIdToken();
-        try {
-          await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/sync`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          });
-        } catch (error) {
-          console.error("Failed to sync user with backend", error);
-        }
+        await fetch("/api/auth/session", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        // You can keep or remove the /users/sync call depending on your needs
+      } else {
+        // If user logs out, clear the session cookie
+        await fetch("/api/auth/session", { method: "DELETE" });
       }
     });
     return () => unsubscribe();
@@ -58,6 +58,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
+      router.push("/app");
     } catch (error) {
       console.error("Error signing in with Google", error);
     }
@@ -65,12 +66,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     await signOut(auth);
+    router.push("/auth");
   };
 
-  const value = { user, loading, signInWithGoogle, logout };
+  const value = { user, isReady, signInWithGoogle, logout };
 
-  // Show a full-screen loader while checking auth state
-  if (loading) {
+  // Show a full-screen loader only until the initial auth check is done
+  if (!isReady) {
     return (
       <div className="min-h-screen w-full bg-pink-50 flex items-center justify-center">
         <Loader2 className="h-12 w-12 animate-spin text-pink-500" />

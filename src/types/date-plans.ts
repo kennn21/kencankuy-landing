@@ -17,4 +17,4 @@ export type DateStep = {
   place: DatePlace;
 };
 
-export type DatePlan = { id: number; steps: DateStep[] };
+export type DatePlan = { id: number; steps: DateStep[]; userId: string | null };

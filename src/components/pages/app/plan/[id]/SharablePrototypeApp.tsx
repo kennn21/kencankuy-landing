@@ -1,58 +1,66 @@
-import { Background } from "@/components/global/Background";
-import { TimelineItem } from "@/components/global/TimelineItems";
-import { Button } from "@/components/ui/button";
-import { DatePlan } from "@/types/date-plans";
-import Link from "next/link";
+"use client";
 
-async function getPlanData(id: string) {
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+
+import { Background } from "@/components/global/Background";
+import { Button } from "@/components/ui/button";
+import { kencanApi } from "@/lib/api-list";
+import { DatePlan } from "@/types/date-plans";
+import { Loader2 } from "lucide-react";
+import { PlanDisplay } from "./PlanDisplay";
+
+// The data fetching function remains mostly the same
+async function getPlanData(id: string): Promise<DatePlan | null> {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/date-plan/${id}`,
-      {
-        cache: "no-store",
-      }
-    );
-    console.log("Response status:", response.status);
-    if (!response.ok) return null;
-    return response.json();
+    // The ApiBuilder now returns the full AxiosResponse
+    const response = await kencanApi.datePlan.getById.call<DatePlan>({
+      params: { id },
+    });
+    // We access the data via response.data
+    return response.data;
   } catch (error) {
     console.error("Failed to fetch plan data:", error);
     return null;
   }
 }
 
-export default async function ShareablePlanPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id: planId } = await params;
+export default function ShareablePlanPage() {
+  const params = useParams();
+  const planId = params.id as string;
 
-  const plan: DatePlan = await getPlanData(planId);
+  const [plan, setPlan] = useState<DatePlan | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  console.log(plan);
+  useEffect(() => {
+    if (!planId) return;
 
-  if (!planId) {
+    const fetchPlan = async () => {
+      setLoading(true);
+      setError(null);
+      const data = await getPlanData(planId);
+      if (data) {
+        setPlan(data);
+      } else {
+        setError("The plan could not be found.");
+      }
+      setLoading(false);
+    };
+
+    fetchPlan();
+  }, [planId]);
+
+  if (loading) {
     return (
-      <main className="min-h-screen w-full bg-pink-50 flex items-center justify-center text-center p-4">
-        <div>
-          <h1 className="text-3xl font-bold font-playfair text-gray-800">
-            Plan Not Found
-          </h1>
-          <p className="text-gray-600 mt-2">
-            The link may be broken or the plan has been deleted.
-          </p>
-          <Link href="/app">
-            <Button className="mt-4 bg-brand-pink hover:bg-pink-400">
-              Create a New Plan
-            </Button>
-          </Link>
-        </div>
+      <main className="min-h-screen w-full bg-pink-50 flex items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-pink-500" />
       </main>
     );
   }
 
-  if (!plan) {
+  if (error || !plan) {
     return (
       <main className="min-h-screen w-full bg-pink-50 flex items-center justify-center text-center p-4">
         <div>
@@ -75,17 +83,7 @@ export default async function ShareablePlanPage({
   return (
     <main className="min-h-screen w-full bg-pink-50 flex items-center justify-center p-4 sm:p-6 md:p-8">
       <Background />
-      <div className="relative z-10 w-full max-w-lg space-y-4">
-        <h2 className="text-3xl sm:text-4xl font-bold text-center text-gray-800 font-playfair">
-          A Date Itinerary For You
-        </h2>
-
-        <div className="timeline-container py-4">
-          {plan.steps.map(({ id, place }, index) => (
-            <TimelineItem key={id} place={place} index={index} />
-          ))}
-        </div>
-      </div>
+      <PlanDisplay plan={plan} />
     </main>
   );
 }
