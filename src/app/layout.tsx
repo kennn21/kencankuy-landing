@@ -3,6 +3,7 @@ import { Playfair_Display, Lato } from "next/font/google"; // 1. Import new font
 import Script from "next/script";
 import "./globals.css";
 import { Toaster } from "sonner";
+import { AuthProvider } from "@/hooks/useAuth";
 
 // 2. Configure the fonts
 const playfair = Playfair_Display({
@@ -30,7 +31,10 @@ export default function RootLayout({
     // 3. Apply the font variables to the HTML tag
     <html lang="en" className={`${playfair.variable} ${lato.variable}`}>
       <body>
-        {children} <Toaster richColors />
+        <AuthProvider>
+          {children} <Toaster richColors />
+        </AuthProvider>
+
         <Script
           src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
           async
