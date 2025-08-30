@@ -11,17 +11,128 @@
 
   /* CUSTOM */
 
-  /* Colors */
+  /* Enhanced Brand Color System */
+  /* Pink Color Palette */
+  --color-brand-pink-50: #fef7f9;
+  --color-brand-pink-100: #fdeef2;
+  --color-brand-pink-200: #fbdde6;
+  --color-brand-pink-300: #f8bdd1;
+  --color-brand-pink-400: #f394b3;
+  --color-brand-pink-500: #ff8fab; /* Main brand pink */
+  --color-brand-pink-600: #e87a9a;
+  --color-brand-pink-700: #d16689;
+  --color-brand-pink-800: #b85577;
+  --color-brand-pink-900: #9b4865;
+  --color-brand-pink-950: #5c2a3c;
+
+  /* Legacy brand colors (keeping for backward compatibility) */
   --color-brand-pink-light: #fff0f3;
   --color-brand-pink: #ff8fab;
   --color-brand-pink-dark: #e87a9a;
 
+  /* Purple Accent Palette */
+  --color-brand-purple-50: #faf7fd;
+  --color-brand-purple-100: #f3edfa;
+  --color-brand-purple-200: #e8ddf5;
+  --color-brand-purple-300: #d6c2ed;
+  --color-brand-purple-400: #bf9de2;
+  --color-brand-purple-500: #a876d4;
+  --color-brand-purple-600: #9259c4;
+  --color-brand-purple-700: #7e47a9;
+  --color-brand-purple-800: #6a3d8c;
+  --color-brand-purple-900: #583572;
+  --color-brand-purple-950: #3a1f4f;
+
+  /* Rose Accent Palette */
+  --color-brand-rose-50: #fff1f2;
+  --color-brand-rose-100: #ffe4e6;
+  --color-brand-rose-200: #fecdd3;
+  --color-brand-rose-300: #fda4af;
+  --color-brand-rose-400: #fb7185;
+  --color-brand-rose-500: #f43f5e;
+  --color-brand-rose-600: #e11d48;
+  --color-brand-rose-700: #be123c;
+  --color-brand-rose-800: #9f1239;
+  --color-brand-rose-900: #881337;
+  --color-brand-rose-950: #4c0519;
+
+  /* Semantic Colors */
+  --color-brand-primary: var(--color-brand-pink-500);
+  --color-brand-secondary: var(--color-brand-purple-500);
+  --color-brand-accent: var(--color-brand-rose-500);
+
   /* Background gradients */
-  --background-image-gradient-radial: radial-gradient(var(--tw-gradient-stops));
-  --background-image-gradient-conic: conic-gradient(
+  --gradient-radial: radial-gradient(var(--tw-gradient-stops));
+  --gradient-conic: conic-gradient(
     from 180deg at 50% 50%,
     var(--tw-gradient-stops)
   );
+
+  /* Brand Gradient Definitions */
+  --gradient-brand-primary: linear-gradient(
+    135deg,
+    var(--color-brand-pink-600),
+    var(--color-brand-pink-400)
+  );
+  --gradient-brand-secondary: linear-gradient(
+    135deg,
+    var(--color-brand-pink-200),
+    var(--color-brand-pink-400)
+  );
+  --gradient-brand-sunset: linear-gradient(
+    135deg,
+    var(--color-brand-rose-400),
+    var(--color-brand-pink-500),
+    var(--color-brand-pink-300)
+  );
+  --gradient-brand-dawn: linear-gradient(
+    135deg,
+    var(--color-brand-pink-200),
+    var(--color-brand-pink-200)
+  );
+  --gradient-brand-vibrant: linear-gradient(
+    135deg,
+    var(--color-brand-pink-600),
+    var(--color-brand-rose-500),
+    var(--color-brand-pink-600)
+  );
+  --gradient-brand-glow: radial-gradient(
+    circle at center,
+    var(--color-brand-pink-400),
+    var(--color-brand-pink-500)
+  );
+  --gradient-brand-soft: radial-gradient(
+    ellipse at top,
+    var(--color-brand-pink-100),
+    transparent
+  );
+  --gradient-bg-light: linear-gradient(
+    135deg,
+    var(--color-brand-pink-50),
+    var(--color-brand-pink-50)
+  );
+  --gradient-bg-card: linear-gradient(
+    135deg,
+    #ffffff,
+    var(--color-brand-pink-50)
+  );
+  --gradient-bg-hero: linear-gradient(
+    135deg,
+    var(--color-brand-pink-100),
+    var(--color-brand-pink-100),
+    var(--color-brand-rose-100)
+  );
+
+  /* Brand Shadow Definitions */
+  --shadow-brand-sm: 0 1px 2px 0 rgb(255 139 171 / 0.1);
+  --shadow-brand-md: 0 4px 6px -1px rgb(255 139 171 / 0.15),
+    0 2px 4px -2px rgb(255 139 171 / 0.1);
+  --shadow-brand-lg: 0 10px 15px -3px rgb(255 139 171 / 0.2),
+    0 4px 6px -4px rgb(255 139 171 / 0.1);
+  --shadow-brand-xl: 0 20px 25px -5px rgb(255 139 171 / 0.25),
+    0 8px 10px -6px rgb(255 139 171 / 0.1);
+  --shadow-brand-glow: 0 0 20px rgb(255 139 171 / 0.4);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -150,6 +261,117 @@
   }
 }
 
+/* Brand Utility Classes */
+@layer utilities {
+  /* Gradient Background Classes */
+  .bg-gradient-brand-primary {
+    background-image: var(--gradient-brand-primary);
+  }
+
+  .bg-gradient-brand-secondary {
+    background-image: var(--gradient-brand-secondary);
+  }
+
+  .bg-gradient-brand-sunset {
+    background-image: var(--gradient-brand-sunset);
+  }
+
+  .bg-gradient-brand-dawn {
+    background-image: var(--gradient-brand-dawn);
+  }
+
+  .bg-gradient-brand-vibrant {
+    background-image: var(--gradient-brand-vibrant);
+  }
+
+  .bg-gradient-brand-glow {
+    background-image: var(--gradient-brand-glow);
+  }
+
+  .bg-gradient-brand-soft {
+    background-image: var(--gradient-brand-soft);
+  }
+
+  .bg-gradient-bg-light {
+    background-image: var(--gradient-bg-light);
+  }
+
+  .bg-gradient-bg-card {
+    background-image: var(--gradient-bg-card);
+  }
+
+  .bg-gradient-bg-hero {
+    background-image: var(--gradient-bg-hero);
+  }
+
+  /* Text Gradient Classes */
+  .text-gradient-brand {
+    background-image: var(--gradient-brand-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .text-gradient-sunset {
+    background-image: var(--gradient-brand-sunset);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .text-gradient-vibrant {
+    background-image: var(--gradient-brand-vibrant);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Shadow Classes */
+  .shadow-brand-sm {
+    box-shadow: var(--shadow-brand-sm);
+  }
+
+  .shadow-brand {
+    box-shadow: var(--shadow-brand-md);
+  }
+
+  .shadow-brand-lg {
+    box-shadow: var(--shadow-brand-lg);
+  }
+
+  .shadow-brand-xl {
+    box-shadow: var(--shadow-brand-xl);
+  }
+
+  .shadow-brand-glow {
+    box-shadow: var(--shadow-brand-glow);
+  }
+
+  /* Animated Gradient */
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
+  }
+
+  /* Brand Hover Effects */
+  .hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-brand-lg);
+  }
+
+  .hover-glow {
+    transition: box-shadow 0.3s ease;
+  }
+
+  .hover-glow:hover {
+    box-shadow: var(--shadow-brand-glow);
+  }
+}
+
 /* Add this to the bottom of the file */
 .pac-container {
   z-index: 1050 !important; /* Ensures it's on top of other elements */
@@ -221,6 +443,7 @@
   left: calc(50% + 30px);
 }
 
+/* Existing Keyframes */
 @keyframes mist-flow {
   50% {
     opacity: 1;
@@ -229,5 +452,38 @@
   0%,
   100% {
     opacity: 0.2;
+  }
+}
+
+/* Brand Animation Keyframes */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgb(255 139 171 / 0.4);
+  }
+  50% {
+    box-shadow: 0 0 30px rgb(255 139 171 / 0.6);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
   }
 }

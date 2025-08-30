@@ -34,7 +34,7 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <Header />
-          <main className="pt-20">{children}</main>
+          <main className="pt-16">{children}</main>
           <Toaster richColors />
         </AuthProvider>
 

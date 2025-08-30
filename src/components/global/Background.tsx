@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 type Heart = {
   id: number;
@@ -88,7 +89,7 @@ const generateRainingHearts = (count: number) => {
   });
 };
 
-export function Background() {
+export function Background({ opacity }: { opacity?: number }) {
   const [isClient, setIsClient] = useState(false);
 
   const hearts: Heart[] = useMemo(() => generateRainingHearts(80), []);
@@ -102,7 +103,12 @@ export function Background() {
   }
 
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none">
+    <div
+      className={cn(
+        "fixed inset-0 overflow-hidden pointer-events-none",
+        opacity ? `opacity-${opacity}` : "opacity-100"
+      )}
+    >
       {/* Softer, slower, and more subtle mist animation */}
       <div className="absolute inset-0 bg-gradient-to-b from-brand-pink/20 via-transparent to-brand-pink/20 animate-[mist-flow_1s_ease-in-out_infinite]" />
 

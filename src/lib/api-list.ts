@@ -10,6 +10,7 @@ export const kencanApi = {
   datePlan: {
     generate: new ApiBuilder("POST", "/date-plan/generate"),
     getById: new ApiBuilder("GET", "/date-plan/:id"),
+    getMyPlans: new ApiBuilder("GET", "/date-plan/my-plans"),
   },
   rateLimit: {
     getStatus: new ApiBuilder("GET", "/rate-limit/status"),

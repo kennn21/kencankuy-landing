@@ -10,6 +10,7 @@ import { kencanApi } from "@/lib/api-list";
 import { DatePlan } from "@/types/date-plans";
 import { Loader2 } from "lucide-react";
 import { PlanDisplay } from "./PlanDisplay";
+import KencanLoader from "@/components/global/KencanLoader";
 
 // The data fetching function remains mostly the same
 async function getPlanData(id: string): Promise<DatePlan | null> {
@@ -54,15 +55,15 @@ export default function ShareablePlanPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen w-full bg-pink-50 flex items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-pink-500" />
+      <main className="min-h-screen w-full  flex items-center justify-center">
+        <KencanLoader />
       </main>
     );
   }
 
   if (error || !plan) {
     return (
-      <main className="min-h-screen w-full bg-pink-50 flex items-center justify-center text-center p-4">
+      <main className="min-h-screen w-full flex items-center justify-center text-center p-4">
         <div>
           <h1 className="text-3xl font-bold font-playfair text-gray-800">
             Plan Not Found
@@ -81,8 +82,8 @@ export default function ShareablePlanPage() {
   }
 
   return (
-    <main className="min-h-screen w-full bg-pink-50 flex items-center justify-center p-4 sm:p-6 md:p-8">
-      <Background />
+    <main className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 md:p-8">
+      <Background opacity={50} />
       <PlanDisplay plan={plan} />
     </main>
   );

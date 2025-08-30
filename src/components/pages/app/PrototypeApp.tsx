@@ -38,11 +38,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PLACE_CATEGORIES } from "@/constants/form.const";
-import { PROTOTYPE_APP_PATH } from "@/constants/path.const";
+import {
+  DATE_PLAN_PAGE_PATH,
+  PROTOTYPE_APP_PATH,
+} from "@/constants/path.const";
 import { DatePlan } from "@/types/date-plans";
 import { Loader2, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { kencanApi } from "@/lib/api-list";
+import KencanLoader from "@/components/global/KencanLoader";
 
 const formSchema = z.object({
   location: z.object(
@@ -138,7 +142,7 @@ export default function PrototypeAppPage() {
         setRemaining(Number(remainingRequests));
       }
 
-      router.push(`/app/plan/${response.data.id}`);
+      router.push(`${DATE_PLAN_PAGE_PATH}/${response.data.id}`);
     } catch (err) {
       setApiError((err as { message: string }).message);
       setStage("options");
@@ -183,7 +187,7 @@ export default function PrototypeAppPage() {
   }, []);
 
   return (
-    <main className="min-h-screen w-full bg-pink-50 flex items-center justify-center p-4 sm:p-6 md:p-8 overflow-hidden">
+    <main className="min-h-screen w-full  flex items-center justify-center p-4 sm:p-6 md:p-8 overflow-hidden">
       <Background />
       <AnimatePresence mode="wait">
         {stage === "idle" && (
@@ -197,13 +201,13 @@ export default function PrototypeAppPage() {
             <div className="text-center flex flex-col items-center justify-center">
               <motion.h1
                 variants={itemVariants}
-                className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-800 mb-4 font-playfair"
+                className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-800 mb-4 font-playfair text-gradient-brand"
               >
                 KencanKuy
               </motion.h1>
               <motion.p
                 variants={itemVariants}
-                className="text-lg sm:text-xl text-pink-600 mb-8 max-w-md"
+                className="text-lg sm:text-xl text-black mb-8 max-w-md"
               >
                 Spontaneous, AI-powered date plans.
                 <br />
@@ -258,7 +262,9 @@ export default function PrototypeAppPage() {
             exit="exit"
             className="w-full max-w-sm flex flex-col items-center gap-8"
           >
-            <h1 className="text-3xl">Choose your Location</h1>
+            <h1 className="text-3xl text-gradient-brand">
+              Choose your Location
+            </h1>
 
             <motion.div variants={itemVariants} className="w-full">
               <LocationAutocomplete
@@ -281,7 +287,7 @@ export default function PrototypeAppPage() {
             <Card className="shadow-2xl shadow-pink-200/50">
               <CardHeader className="text-center">
                 <motion.div variants={itemVariants}>
-                  <CardTitle className="text-2xl">
+                  <CardTitle className="text-2xl text-gradient-brand">
                     Just a few details...
                   </CardTitle>
                 </motion.div>
@@ -387,7 +393,7 @@ export default function PrototypeAppPage() {
                             className="w-full bg-brand-pink hover:bg-pink-400 text-white font-bold"
                           >
                             {stage === "fetchingPlan" ? (
-                              <Loader2 className="animate-spin" />
+                              <KencanLoader />
                             ) : (
                               "Create My Itinerary"
                             )}

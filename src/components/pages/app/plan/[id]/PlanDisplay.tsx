@@ -23,7 +23,7 @@ export function PlanDisplay({ plan }: { plan: DatePlan }) {
 
   return (
     <div className="relative z-10 w-full max-w-lg space-y-4">
-      <h2 className="text-3xl sm:text-4xl font-bold text-center text-gray-800 font-playfair">
+      <h2 className="text-3xl sm:text-4xl font-bold text-center text-gradient-brand font-playfair">
         {isUserOwner ? "Your Date Itinerary" : "A Date Itinerary For You"}
       </h2>
 

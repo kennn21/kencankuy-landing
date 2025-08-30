@@ -12,6 +12,8 @@ import { auth } from "@/lib/firebase";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { UserProfile } from "@/types/user";
+import { AUTH_PAGE_PATH, PROTOTYPE_APP_PATH } from "@/constants/path.const";
+import KencanLoader from "@/components/global/KencanLoader";
 
 // Define the shape of the context
 interface AuthContextType {
@@ -84,7 +86,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      router.push("/app");
+      router.push(PROTOTYPE_APP_PATH);
     } catch (error) {
       console.error("Error signing in with Google", error);
     }
@@ -92,7 +94,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     await signOut(auth);
-    router.push("/auth");
+    router.push(AUTH_PAGE_PATH);
   };
 
   const value = { user, profile, isReady, signInWithGoogle, logout };
@@ -100,7 +102,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   if (!isReady) {
     return (
       <div className="min-h-screen w-full bg-pink-50 flex items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-pink-500" />
+        <KencanLoader />
       </div>
     );
   }

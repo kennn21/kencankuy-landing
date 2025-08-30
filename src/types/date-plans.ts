@@ -17,4 +17,11 @@ export type DateStep = {
   place: DatePlace;
 };
 
-export type DatePlan = { id: number; steps: DateStep[]; userId: string | null };
+export type DatePlan = {
+  id: number;
+  steps: DateStep[];
+  userId: string | null;
+  theme: string;
+  createdAt: string;
+  updatedAt: string;
+};

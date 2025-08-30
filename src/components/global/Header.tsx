@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Sparkles } from "lucide-react";
+import { MY_PLANS_PATH, SETTINGS_PATH } from "@/constants/path.const";
 
 export function Header() {
   const { user, isReady, logout } = useAuth();
@@ -33,7 +34,7 @@ export function Header() {
         <div className="container mx-auto flex items-center justify-between p-4">
           <Link
             href="/"
-            className="text-xl font-bold font-playfair text-brand-pink"
+            className="text-xl font-bold font-playfair text-gradient-brand"
           >
             KencanKuy
           </Link>
@@ -45,10 +46,13 @@ export function Header() {
             </Link>
             {isReady && user ? (
               <>
-                <Link href="/settings/profile">
+                <Link href={MY_PLANS_PATH}>
+                  <Button variant="ghost">My Plans</Button>
+                </Link>
+                <Link href={SETTINGS_PATH}>
                   <Button variant="ghost">Settings</Button>
                 </Link>
-                <Button onClick={logout} variant="destructive">
+                <Button onClick={logout} variant="love">
                   Logout
                 </Button>
               </>
@@ -73,6 +77,7 @@ export function Header() {
         {isMobileMenuOpen && (
           <motion.div
             key="mobile-menu"
+            // @ts-expect-error type
             variants={menuVariants}
             initial="hidden"
             animate="visible"
@@ -98,7 +103,15 @@ export function Header() {
               </Link>
               {isReady && user ? (
                 <>
-                  <Link href="/settings/profile" onClick={toggleMobileMenu}>
+                  <Link href={MY_PLANS_PATH} onClick={toggleMobileMenu}>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start text-lg"
+                    >
+                      My Plans
+                    </Button>
+                  </Link>
+                  <Link href={SETTINGS_PATH} onClick={toggleMobileMenu}>
                     <Button
                       variant="ghost"
                       className="w-full justify-start text-lg"
@@ -111,7 +124,7 @@ export function Header() {
                       logout();
                       toggleMobileMenu();
                     }}
-                    variant="destructive"
+                    variant="love"
                     className="w-full justify-start text-lg"
                   >
                     Logout
