@@ -256,8 +256,10 @@ export default function PrototypeAppPage() {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="w-full max-w-sm flex flex-col items-center"
+            className="w-full max-w-sm flex flex-col items-center gap-8"
           >
+            <h1 className="text-3xl">Choose your Location</h1>
+
             <motion.div variants={itemVariants} className="w-full">
               <LocationAutocomplete
                 onLocationSelect={handleManualLocationSelect}

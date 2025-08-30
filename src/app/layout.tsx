@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/hooks/useAuth";
+import { Header } from "@/components/global/Header";
 
 // 2. Configure the fonts
 const playfair = Playfair_Display({
@@ -32,7 +33,9 @@ export default function RootLayout({
     <html lang="en" className={`${playfair.variable} ${lato.variable}`}>
       <body>
         <AuthProvider>
-          {children} <Toaster richColors />
+          <Header />
+          <main className="pt-20">{children}</main>
+          <Toaster richColors />
         </AuthProvider>
 
         <Script
