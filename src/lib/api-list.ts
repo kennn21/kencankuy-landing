@@ -1,9 +1,9 @@
 import { ApiBuilder } from "./api-builder";
 
-// Define your API endpoints in a structured object
 export const kencanApi = {
   users: {
     sync: new ApiBuilder("POST", "/users/sync"),
+    getProfile: new ApiBuilder("GET", "/users/me"),
     updateProfile: new ApiBuilder("PATCH", "/users/me"),
     linkPartner: new ApiBuilder("POST", "/users/link-partner"),
   },
@@ -14,5 +14,10 @@ export const kencanApi = {
   },
   rateLimit: {
     getStatus: new ApiBuilder("GET", "/rate-limit/status"),
+  },
+  // Add this new object for the data entry page
+  places: {
+    getAll: new ApiBuilder("GET", "/curated-places"),
+    update: new ApiBuilder("PATCH", "/curated-places/:id"),
   },
 };

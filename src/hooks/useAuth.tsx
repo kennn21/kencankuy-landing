@@ -1,19 +1,18 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import KencanLoader from "@/components/global/KencanLoader";
+import { AUTH_PAGE_PATH, PROTOTYPE_APP_PATH } from "@/constants/path.const";
+import { auth } from "@/lib/firebase";
+import { UserProfile } from "@/types/user";
 import {
-  onAuthStateChanged,
   GoogleAuthProvider,
+  onAuthStateChanged,
   signInWithPopup,
   signOut,
   User,
 } from "firebase/auth";
-import { auth } from "@/lib/firebase";
-import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { UserProfile } from "@/types/user";
-import { AUTH_PAGE_PATH, PROTOTYPE_APP_PATH } from "@/constants/path.const";
-import KencanLoader from "@/components/global/KencanLoader";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 // Define the shape of the context
 interface AuthContextType {

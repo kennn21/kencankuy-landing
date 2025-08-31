@@ -1,10 +1,9 @@
-import type { Metadata } from "next";
-import { Playfair_Display, Lato } from "next/font/google"; // 1. Import new fonts
-import Script from "next/script";
-import "./globals.css";
-import { Toaster } from "sonner";
 import { AuthProvider } from "@/hooks/useAuth";
-import { Header } from "@/components/global/Header";
+import type { Metadata } from "next";
+import { Lato, Playfair_Display } from "next/font/google"; // 1. Import new fonts
+import Script from "next/script";
+import { Toaster } from "sonner";
+import "./globals.css";
 
 // 2. Configure the fonts
 const playfair = Playfair_Display({
@@ -33,8 +32,7 @@ export default function RootLayout({
     <html lang="en" className={`${playfair.variable} ${lato.variable}`}>
       <body>
         <AuthProvider>
-          <Header />
-          <main className="pt-16">{children}</main>
+          {children}
           <Toaster richColors />
         </AuthProvider>
 
