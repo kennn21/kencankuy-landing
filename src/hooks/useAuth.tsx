@@ -1,7 +1,11 @@
 "use client";
 
 import KencanLoader from "@/components/global/KencanLoader";
-import { AUTH_PAGE_PATH, PROTOTYPE_APP_PATH } from "@/constants/path.const";
+import {
+  AUTH_PAGE_PATH,
+  LANDING_PAGE_PATH,
+  PROTOTYPE_APP_PATH,
+} from "@/constants/path.const";
 import { auth } from "@/lib/firebase";
 import { UserProfile } from "@/types/user";
 import {
@@ -11,7 +15,7 @@ import {
   signOut,
   User,
 } from "firebase/auth";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 // Define the shape of the context
@@ -37,6 +41,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isReady, setIsReady] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -98,7 +103,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const value = { user, profile, isReady, signInWithGoogle, logout };
 
-  if (!isReady) {
+  if (pathname !== LANDING_PAGE_PATH && !isReady) {
     return (
       <div className="min-h-screen w-full bg-pink-50 flex items-center justify-center">
         <KencanLoader />
