@@ -7,13 +7,14 @@ import { toast } from "sonner";
 import { DatePlan } from "@/types/date-plans";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
+import { DATE_PLAN_PAGE_PATH } from "@/constants/path.const";
 
 export function PlanDisplay({ plan }: { plan: DatePlan }) {
   const places = plan.steps.map((step) => step.place);
   const { user } = useAuth();
 
   const handleShare = () => {
-    const shareUrl = `${window.location.origin}/plan/${plan.id}`;
+    const shareUrl = `${DATE_PLAN_PAGE_PATH}/${plan.id}`;
     navigator.clipboard.writeText(shareUrl);
     toast.success("Link copied to clipboard!");
   };
