@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 
 type Heart = {
   id: number;
@@ -89,10 +90,24 @@ const generateRainingHearts = (count: number) => {
   });
 };
 
+const INITIAL_HEART_COUNT = 80;
+const REDUCED_HEART_COUNT = 30;
+
 export function Background({ opacity }: { opacity?: number }) {
   const [isClient, setIsClient] = useState(false);
+  const [heartCount, setHeartCount] = useState(INITIAL_HEART_COUNT);
 
-  const hearts: Heart[] = useMemo(() => generateRainingHearts(80), []);
+  const reduceHeartCount = useCallback(() => {
+    console.warn("Poor performance detected. Reducing heart count.");
+    setHeartCount(REDUCED_HEART_COUNT);
+  }, []);
+
+  usePerformanceMonitor(reduceHeartCount);
+
+  const hearts = React.useMemo(
+    () => generateRainingHearts(heartCount),
+    [heartCount]
+  );
 
   useEffect(() => {
     setIsClient(true);
